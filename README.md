@@ -1,90 +1,56 @@
-# Welcome to GitHub
+This project contains a domain specific language (DSL) that allows users to create their own version of the game of life.
+It uses Eclipse, Java 11 and Xtext.
 
-Welcome to GitHub—where millions of developers work together on software. Ready to get started? Let’s learn how this all works by building and publishing your first GitHub Pages website!
+Created by Tim Alessie and Susan van den Broek, November 2023.
 
-## Repositories
+## Grammar specification
+The grammar looks as follows:
+- Game = Grid and a list of Rules
+- Grid = a list of Cells
+- Cell = A Coordinate in combination with a Status
+    - A list of Cells is created by defining multiple Cells in a block of code, one Cell per line.
+    - A Cell represents a position on the board.
+- Coordinate = (X, Y)
+- Status = Dead or Alive.
+    - The status represents the state that the Cell is in
+- Rule = the inputStatus, an Evaluator and Threshold, followed by the corresponding outputStatus
+    - the inputStatus is the condition (Dead or Alive) that a Cell has to meet in order for this rule to be applied
+    - the Evaluator and Threshold are compared against the number of alive neighbors of the cell.
+        - i.e.: Evaluator = <, Threshold = 3. This means that the rule applies whenever there are less than 3 surviving neighbors
+    - the outputStatus is the outcome of the rule. A Cell can either become Alive or Dead when the conditions of the rules are satisfied.
+- Evaluator = either == (EQUALS), or < (LESS), or > (MORE)
+    - Evaluators are used to compare the surviving neighbors of a Cell, to a specified treshold
+- Threshold = an integer representing how many surviving neighbors are required for a rule to hold
 
-Right now, we’re in your first GitHub **repository**. A repository is like a folder or storage space for your project. Your project's repository contains all its files such as code, documentation, images, and more. It also tracks every change that you—or your collaborators—make to each file, so you can always go back to previous versions of your project if you make any mistakes.
+See gol.models/specs/properGOL.tdsl for a proper working example.
 
-This repository contains three important files: The HTML code for your first website on GitHub, the CSS stylesheet that decorates your website with colors and fonts, and the **README** file. It also contains an image folder, with one image file.
+## Running your DSL
+The following steps are required to run the language specification that you've written:
+- Launch the runtime workspace (contains the folders gol.rules.models and short.life)
+- In this workspace, modify the 'spec' file (gol.rules.models/specs/nameOfYourSpecFile.tdsl) according to your specifications
+- Clean the project in the runtime workspace, by clicking: project -> clean
+- A file will be generated in gol.models/src-gen/RulesOfLife.java. Move it to short.life/src/GameOfLife/. Replace the existing file.
+- You can now run short.life/src/GameOfLife/GameOfLife.java as a java application. Here your language will play out once you click 'Game-> Play'.
+- Eventhough you can technically draw Alive Cells on the board, they will not be part of the game and therefore they will Die and disappear. The only Cells in the game are those specified by the user in the specification.
 
-## Describe your project
+## Tools and guidelines to help you write your specification
+Some validation rules have be set in place in order to make it easier for users to create their language specifications.
+These validation rules are:
+- An *error* willl be raised whenever a user specifies rules for the same inputStatus with overlapping domain. This is because rules like these lead to ambiguity. It is unclear what should happen, and it very likely that the user either made a typo, or an error in their judgement. With this rule it is still possible to specify whatever the user would want. This is because you can always define multiple rules using the EQUALS (==) evaluator. That way, all thresholds in the domain can be covered. (i.e., Dead (==1) Alive; Dead (==2) Dead; Dead (==3) Alive; etc..). This rule also filters out any duplicated rules.
+    - For instance, the following two rules are not allowed to exist simultainiously:
+        - Dead (> 3) Alive
+        - Dead (< 7) Dead
+- An *error* will be raised whenever a user specifies a rule with a threshold value smaller than 0 or greater than 8. This is because each cell can have at maximum 8 neighbours, and those neighbors can at minimum all be dead.
+- A *warning* will be raised whenever a user specifies two cells with the exact same coordinates and the same status. This is most likely an typing error.
+- An *error* will be raised whenever a user specifies two cells with the exact same coordinates, but a different status. This is most likely a typing error, and it leads to ambiguity.
+- An *error* will be raised whenever a user specifies a cell with negative coordinates. This is because the grammar does not allow minus signs.
+Please also keep in mind the following two aspects of the language:
+- By default, Cells die in the next interation of the game. This means that unless there is a rule set in place to keep them Alive, they will become Dead.
+- By default, Cells are initialted Dead. This means that when defining your Grid, you should mention Cells with an Alive status.
 
-You are currently viewing your project's **README** file. **_README_** files are like cover pages or elevator pitches for your project. They are written in plain text or [Markdown language](https://guides.github.com/features/mastering-markdown/), and usually include a paragraph describing the project, directions on how to use it, who authored it, and more.
-
-[Learn more about READMEs](https://help.github.com/en/articles/about-readmes)
-
-## Your first website
-
-**GitHub Pages** is a free and easy way to create a website using the code that lives in your GitHub repositories. You can use GitHub Pages to build a portfolio of your work, create a personal website, or share a fun project that you coded with the world. GitHub Pages is automatically enabled in this repository, but when you create new repositories in the future, the steps to launch a GitHub Pages website will be slightly different.
-
-[Learn more about GitHub Pages](https://pages.github.com/)
-
-## Rename this repository to publish your site
-
-We've already set-up a GitHub Pages website for you, based on your personal username. This repository is called `hello-world`, but you'll rename it to: `username.github.io`, to match your website's URL address. If the first part of the repository doesn’t exactly match your username, it won’t work, so make sure to get it right.
-
-Let's get started! To update this repository’s name, click the `Settings` tab on this page. This will take you to your repository’s settings page. 
-
-![repo-settings-image](https://user-images.githubusercontent.com/18093541/63130482-99e6ad80-bf88-11e9-99a1-d3cf1660b47e.png)
-
-Under the **Repository Name** heading, type: `username.github.io`, where username is your username on GitHub. Then click **Rename**—and that’s it. When you’re done, click your repository name or browser’s back button to return to this page.
-
-<img width="1039" alt="rename_screenshot" src="https://user-images.githubusercontent.com/18093541/63129466-956cc580-bf85-11e9-92d8-b028dd483fa5.png">
-
-Once you click **Rename**, your website will automatically be published at: https://your-username.github.io/. The HTML file—called `index.html`—is rendered as the home page and you'll be making changes to this file in the next step.
-
-Congratulations! You just launched your first GitHub Pages website. It's now live to share with the entire world
-
-## Making your first edit
-
-When you make any change to any file in your project, you’re making a **commit**. If you fix a typo, update a filename, or edit your code, you can add it to GitHub as a commit. Your commits represent your project’s entire history—and they’re all saved in your project’s repository.
-
-With each commit, you have the opportunity to write a **commit message**, a short, meaningful comment describing the change you’re making to a file. So you always know exactly what changed, no matter when you return to a commit.
-
-## Practice: Customize your first GitHub website by writing HTML code
-
-Want to edit the site you just published? Let’s practice commits by introducing yourself in your `index.html` file. Don’t worry about getting it right the first time—you can always build on your introduction later.
-
-Let’s start with this template:
-
-```
-<p>Hello World! I’m [username]. This is my website!</p>
-```
-
-To add your introduction, copy our template and click the edit pencil icon at the top right hand corner of the `index.html` file.
-
-<img width="997" alt="edit-this-file" src="https://user-images.githubusercontent.com/18093541/63131820-0794d880-bf8d-11e9-8b3d-c096355e9389.png">
-
-
-Delete this placeholder line:
-
-```
-<p>Welcome to your first GitHub Pages website!</p>
-```
-
-Then, paste the template to line 15 and fill in the blanks.
-
-<img width="1032" alt="edit-githuboctocat-index" src="https://user-images.githubusercontent.com/18093541/63132339-c3a2d300-bf8e-11e9-8222-59c2702f6c42.png">
-
-
-When you’re done, scroll down to the `Commit changes` section near the bottom of the edit page. Add a short message explaining your change, like "Add my introduction", then click `Commit changes`.
-
-
-<img width="1030" alt="add-my-username" src="https://user-images.githubusercontent.com/18093541/63131801-efbd5480-bf8c-11e9-9806-89273f027d16.png">
-
-Once you click `Commit changes`, your changes will automatically be published on your GitHub Pages website. Refresh the page to see your new changes live in action.
-
-:tada: You just made your first commit! :tada:
-
-## Extra Credit: Keep on building!
-
-Change the placeholder Octocat gif on your GitHub Pages website by [creating your own personal Octocat emoji](https://myoctocat.com/build-your-octocat/) or [choose a different Octocat gif from our logo library here](https://octodex.github.com/). Add that image to line 12 of your `index.html` file, in place of the `<img src=` link.
-
-Want to add even more code and fun styles to your GitHub Pages website? [Follow these instructions](https://github.com/github/personal-website) to build a fully-fledged static website.
-
-![octocat](./images/create-octocat.png)
-
-## Everything you need to know about GitHub
-
-Getting started is the hardest part. If there’s anything you’d like to know as you get started with GitHub, try searching [GitHub Help](https://help.github.com). Our documentation has tutorials on everything from changing your repository settings to configuring GitHub from your command line.
+## Some examples
+See gol.rules.model/specs/ for some example specifications. They are explained below.
+- properGOL.tdsl defines the game of life with the rules as specified by John Conway. We initialised the grid with some known shapes that lead to patterns.
+- overlappingDomainError.tdsl shows a specification in which an overlapping domain with same inputStatus error is raised
+- thresholdError.tdsl shows a specification in which a treshold error is raised
+- duplicateCellWarning shows a specification in which the duplicate cell warning is raised. Uncomment the first Cell the change the warning into an error.
